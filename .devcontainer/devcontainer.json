@@ -1,11 +1,12 @@
 // GitHub Codespaces / VS Code Dev Containers (a fallback if your laptop can't run the course).
-// Code -> Codespaces -> "Create codespace on main". Pick the 4-core machine for the
-// Week 7 Spark lab (see README, "Codespaces").
+// Code -> Codespaces -> "Create codespace on main". The default 2-core machine runs
+// both Docker labs (see README, "Codespaces"). sshd lets `gh codespace ssh` work.
 {
   "name": "Cascade Mobility (AD 323)",
   "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
   "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/sshd:1": {}
   },
   "hostRequirements": { "cpus": 2, "memory": "8gb", "storage": "32gb" },
   "postCreateCommand": "curl -LsSf https://astral.sh/uv/0.13.5/install.sh | sh && ~/.local/bin/uv sync --locked",

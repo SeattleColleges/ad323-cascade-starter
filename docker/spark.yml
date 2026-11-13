@@ -21,6 +21,14 @@ services:
     # Official Jupyter Docker Stacks image, pinned to an exact build (Spark 4.2.0).
     image: quay.io/jupyter/pyspark-notebook:2026-10-26@sha256:fcbfbcb1a8efeb94c64027584344053e1908529832dfb10644d7763201fac26e
     container_name: cascade-spark
+    # On Linux (WSL2, Codespaces) Docker creates a missing engine_out folder as
+    # root, and Spark (user jovyan) could not write to it. Starting as root lets
+    # the image's start script hand that folder to jovyan; Jupyter itself still
+    # runs as jovyan, never as root.
+    user: root
+    environment:
+      CHOWN_EXTRA: /home/jovyan/data/engine_out
+      CHOWN_EXTRA_OPTS: -R
     ports:
       - "127.0.0.1:8888:8888"      # localhost only
       - "127.0.0.1:4040:4040"      # Spark UI while a job runs

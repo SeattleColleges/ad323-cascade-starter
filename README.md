@@ -149,7 +149,27 @@ docker compose -f docker/redpanda.yml down -v
 
 If your own computer can't run the course, you can work in GitHub Codespaces:
 **Code → Codespaces → Create codespace on main**. Setup runs `uv sync` for you.
-Measured memory, disk and core-hours for the Docker labs in Codespaces will be added here.
+Use the default **2-core** machine (8 GB memory, 32 GB disk). Both Docker
+labs fit; measured on 2026-11-12:
+
+| | 2-core codespace |
+|---|---|
+| Setup (create + `uv sync`) | about 2 minutes |
+| Week 7: Spark container peak / whole codespace peak | 1.3 GB of 3 GB / 2.4 GB of 8 GB |
+| Week 7: Spark image download | about 4 minutes (pull it once, early) |
+| Week 8: Redpanda peak / whole codespace peak | 0.2 GB of 1 GB / 1.6 GB of 8 GB |
+| Disk used with both images and the full year | about 10 GB of 32 GB |
+
+Spark runs about 4 times slower than on a recent laptop (2-6 s per step);
+that's fine for the lab. Open Jupyter (8888), the dashboard (8501) or the
+Prefect UI (4200) from the **Ports** tab.
+
+**Free hours.** A free GitHub account gets 120 core-hours and 15 GB of
+storage per month; a 2-core codespace uses 2 core-hours per hour. A Docker lab
+session uses about 3-4 core-hours (Week 7) or 2-3 (Week 8). Your codespace
+stops by itself after 30 idle minutes; stop it yourself when you finish
+(**Code → Codespaces → ... → Stop**), and keep just one codespace for the
+quarter. Storage is charged while it exists, even when stopped.
 
 ## Why your repo should be public
 
