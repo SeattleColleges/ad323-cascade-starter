@@ -1,0 +1,21 @@
+// GitHub Codespaces / VS Code Dev Containers (a fallback if your laptop can't run the course).
+// Code -> Codespaces -> "Create codespace on main". Pick the 4-core machine for the
+// Week 7 Spark lab (see README, "Codespaces").
+{
+  "name": "Cascade Mobility (AD 323)",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  "hostRequirements": { "cpus": 2, "memory": "8gb", "storage": "32gb" },
+  "postCreateCommand": "curl -LsSf https://astral.sh/uv/0.13.5/install.sh | sh && ~/.local/bin/uv sync --locked",
+  "forwardPorts": [8501, 8888, 4200],
+  "portsAttributes": {
+    "8501": { "label": "Streamlit dashboard" },
+    "8888": { "label": "Jupyter (Week 7)" },
+    "4200": { "label": "Prefect UI (Week 6)" }
+  },
+  "customizations": {
+    "vscode": { "extensions": ["ms-python.python", "ms-toolsai.jupyter"] }
+  }
+}

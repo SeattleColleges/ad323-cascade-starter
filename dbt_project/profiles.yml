@@ -1,0 +1,11 @@
+# Connection settings (provided infrastructure, students don't change this).
+# The warehouse lives in the same data root as bronze and silver.
+# CASCADE_DATA_ROOT is set by cascade.transform; when you run dbt yourself
+# from the repo root it defaults to "data".
+cascade:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('CASCADE_DATA_ROOT', 'data') }}/warehouse.duckdb"
+      threads: 4

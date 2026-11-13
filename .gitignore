@@ -1,0 +1,39 @@
+# Python / uv
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Data lake layers are rebuilt by the pipeline; only the frozen sample is committed.
+data/bronze/*
+data/silver/*
+data/gold/*
+!data/bronze/.gitkeep
+!data/silver/.gitkeep
+!data/gold/.gitkeep
+data/runs/
+data/stream/
+# PII (Week 9): never commit, even fake PII
+data/restricted/
+
+# DuckDB warehouse (written by the pipeline and dbt, later weeks)
+*.duckdb
+*.duckdb.wal
+
+# dbt build output
+dbt_project/target/
+dbt_project/logs/
+dbt_project/.user.yml
+
+# Secrets: .env holds real values; only .env.example is committed
+.env
+.env.*
+!.env.example
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Jupyter autosaves (Week 7 lab)
+.ipynb_checkpoints/

@@ -1,0 +1,83 @@
+version: 2
+
+# Week 8 TODO: add data_tests (unique, not_null, relationships, accepted_values, ...) to the
+# columns below. The skeleton lists every model and column; the tests are yours.
+
+# Week 8. These models are tagged "stream" and only built when the consumer has
+# written windows (cascade.transform checks for files and otherwise runs
+# `dbt build --exclude tag:stream`), so skipping Week 8 never breaks dbt.
+
+sources:
+  - name: stream
+    description: Output of cascade.stream.consumer, one Parquet file per 5-minute window.
+    meta:
+      external_location: >-
+        read_parquet('{{ env_var('CASCADE_DATA_ROOT', 'data') }}/stream/{name}/*.parquet')
+    tables:
+      - name: station_availability
+        description: One row per GBFS station per 5-minute window.
+
+  - name: gbfs
+    description: Snapshot of Divvy's GBFS station_information feed, saved with the replay.
+    meta:
+      external_location: >-
+        read_json('{{ env_var('CASCADE_SAMPLE_DIR', 'data/sample') }}/gbfs/{name}.json.gz')
+    tables:
+      - name: station_information
+        description: "One JSON object: {snapshot_time, stations: [...]}."
+
+models:
+  - name: stg_gbfs_stations
+    description: >
+      One row per GBFS station. GBFS station_id is an internal number that never
+      appears in the trip data; short_name (e.g. CHI00413) is the trip station ID.
+      Public bike racks ("lightweight" stations) have no short_name.
+    config:
+      tags: ["stream"]
+    columns:
+      - name: gbfs_station_id
+        description: GBFS internal station ID (matches station_status messages).
+      - name: short_name
+        description: Divvy station code, equal to station_id in the trip files. NULL for public racks.
+      - name: station_name
+        description: Station name in the GBFS feed.
+      - name: capacity
+        description: Number of docks.
+      - name: station_type
+        description: classic (docking station) or lightweight (public bike rack).
+
+  - name: fct_station_availability
+    description: >
+      One row per station per 5-minute window, from the replayed GBFS feed.
+      station_key joins to dim_station through short_name; stations that never
+      appear in the trip data (new stations, public racks) get the unknown key
+      and in_trip_data = false.
+    config:
+      tags: ["stream"]
+    columns:
+      - name: window_start
+        description: Start of the 5-minute window, Chicago local time.
+      - name: window_end
+        description: End of the window (exclusive).
+      - name: gbfs_station_id
+        description: GBFS internal station ID.
+      - name: station_key
+        description: Key into dim_station, or the unknown station when there is no match.
+      - name: in_trip_data
+        description: True when the station's short_name is a station ID in the trip data.
+      - name: station_name
+        description: Station name from GBFS (also present for unmatched stations).
+      - name: readings
+        description: Feed snapshots in this window (normally 5).
+      - name: avg_bikes_available
+        description: Average bikes available (classic + e-bikes).
+      - name: avg_ebikes_available
+        description: Average e-bikes available.
+      - name: avg_docks_available
+        description: Average empty docks.
+      - name: min_bikes_available
+        description: Lowest bike count seen in the window.
+      - name: empty_readings
+        description: Snapshots in the window with 0 bikes.
+      - name: is_empty
+        description: True when the station had 0 bikes in every snapshot of the window.

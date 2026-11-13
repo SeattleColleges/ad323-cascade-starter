@@ -1,0 +1,65 @@
+# Continuous integration (provided).
+#
+# On every push and pull request:
+#   1. install the locked dependencies,
+#   2. run the tests (weeks you haven't started are SKIPPED, not failed),
+#   3. run the sample pipeline as far as it is written (cascade.check).
+# Only the frozen sample in data/sample is used; nothing is downloaded.
+#
+# Grading evidence: Actions tab -> ci -> "Run workflow" -> pick the week.
+# That run executes ONLY that week's tests, and a TODO counts as a failure:
+#     uv run pytest -m week03 --require-implemented
+# Submit the link to the green run with your assignment.
+
+name: ci
+run-name: ${{ inputs.week && format('Week {0} grading evidence', inputs.week) || '' }}
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      week:
+        description: "Week to check (runs pytest -m weekNN --require-implemented)"
+        required: true
+        type: choice
+        options: ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11"]
+
+permissions:
+  contents: read          # this workflow only reads the repo
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      # A throwaway salt for CI only. It hashes FAKE riders, so it isn't a secret;
+      # your real salt lives in .env on your machine and never in git.
+      CASCADE_PII_SALT: ci-only-salt-for-fake-riders-0123456789
+
+    steps:
+      # Actions are pinned to an exact commit (the version is in the comment),
+      # so a changed or hijacked tag can't change what runs here.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e  # v10.3.2
+        with:
+          version: "0.13.5"
+          enable-cache: true
+
+      - name: Install locked dependencies
+        run: uv sync --locked
+
+      - name: Week ${{ inputs.week }} tests (TODO counts as a failure)
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          WEEK: ${{ inputs.week }}
+        run: uv run pytest -m "week${WEEK}" --require-implemented -rA
+
+      - name: Tests
+        if: github.event_name != 'workflow_dispatch'
+        run: uv run pytest -rs
+
+      - name: Sample pipeline, as far as it is written
+        if: github.event_name != 'workflow_dispatch'
+        run: uv run python -m cascade.check

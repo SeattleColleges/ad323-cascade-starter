@@ -1,0 +1,59 @@
+version: 2
+
+# Week 9 TODO: add data_tests (unique, not_null, relationships, accepted_values, ...) to the
+# columns below. The skeleton lists every model and column; the tests are yours.
+
+# Week 9. Raw PII lives ONLY in the `restricted` schema, which is never exported
+# to data/gold and never read by the dashboard. These models are tagged "pii"
+# and only built when data/restricted/riders.csv exists (cascade.riders).
+
+sources:
+  - name: restricted
+    description: Files with personal data, kept outside git in <data_root>/restricted/.
+    meta:
+      external_location: >-
+        read_csv('{{ env_var('CASCADE_DATA_ROOT', 'data') }}/restricted/{name}.csv', header = true)
+    tables:
+      - name: riders
+        description: Synthetic rider accounts (fake PII) from cascade.riders.
+        config:
+          meta:
+            contains_pii: true
+
+models:
+  - name: stg_riders
+    description: >
+      Raw rider accounts, typed. RESTRICTED: contains direct identifiers. Only
+      the pipeline reads this; analysts use gold.dim_rider.
+    config:
+      tags: ["pii"]
+      meta:
+        contains_pii: true
+        access: restricted
+    columns:
+      - name: rider_id
+        description: Account ID (not personal by itself).
+      - name: first_name
+        description: First name.
+        config:
+          meta: {pii: true, pii_type: name}
+      - name: last_name
+        description: Last name.
+        config:
+          meta: {pii: true, pii_type: name}
+      - name: email
+        description: Email address. Direct identifier.
+        config:
+          meta: {pii: true, pii_type: email}
+      - name: birth_date
+        description: Date of birth.
+        config:
+          meta: {pii: true, pii_type: date_of_birth}
+      - name: home_zip
+        description: Home ZIP code. Quasi-identifier when combined with birth date.
+        config:
+          meta: {pii: true, pii_type: location}
+      - name: member_casual
+        description: member or casual.
+      - name: signup_date
+        description: Date the account was created.

@@ -1,0 +1,6 @@
+# Streamlit settings for this project (provided). Used when you run Streamlit from the repo root.
+[browser]
+gatherUsageStats = false    # no usage statistics from student machines
+
+[server]
+address = "127.0.0.1"       # the dashboard is only reachable from this computer

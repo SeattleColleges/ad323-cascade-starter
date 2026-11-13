@@ -1,0 +1,124 @@
+version: 2
+
+# Week 5 TODO: add data_tests (unique, not_null, relationships, accepted_values, ...) to the
+# columns below. The skeleton lists every model and column; the tests are yours.
+
+models:
+  - name: fct_trips
+    description: >
+      One row per valid trip (is_valid in silver). Incremental: new batches are
+      appended, a rerun of a batch replaces it. Dockless trips point at the
+      unknown station; trips with no weather hour point at weather_key -1.
+    columns:
+      - name: ride_id
+        description: Divvy trip ID. The grain of this table.
+      - name: start_station_key
+        description: Station where the trip started (md5 of the station ID, or of 'UNKNOWN').
+      - name: end_station_key
+        description: Station where the trip ended.
+      - name: date_key
+        description: Start date as yyyymmdd.
+      - name: start_hour
+        description: Hour of the start time, 0–23.
+      - name: weather_key
+        description: Weather for the start hour (yyyymmddhh), or -1 when unknown.
+      - name: started_at
+        description: Trip start, Chicago local time.
+      - name: ended_at
+        description: Trip end, Chicago local time.
+      - name: duration_min
+        description: Trip length in minutes (1 to 1,440 for valid trips).
+      - name: distance_km
+        description: Straight-line distance from start to end coordinates, km. Round trips are near 0.
+      - name: rideable_type
+        description: Kept on the fact instead of in a tiny dimension.
+      - name: member_casual
+        description: Kept on the fact instead of in a tiny dimension.
+      - name: year_month
+        description: Source batch. The incremental model loads and replaces whole batches.
+      - name: loaded_at
+        description: When dbt wrote this row. Shows which rows an incremental run touched.
+
+  - name: dim_station
+    description: One row per station ID seen in valid trips, plus one unknown-station row.
+    columns:
+      - name: station_key
+        description: md5(station_id). Stays the same on every run.
+      - name: station_id
+        description: Divvy station ID, or 'UNKNOWN'.
+      - name: station_name
+        description: Most common name used for this ID.
+      - name: name_count
+        description: How many different names this ID appeared with.
+      - name: lat
+        description: Median latitude of trips at this station.
+      - name: lng
+        description: Median longitude of trips at this station.
+      - name: first_seen
+        description: Earliest trip start or end at this station.
+      - name: last_seen
+        description: Latest trip start or end at this station.
+      - name: is_unknown
+        description: True only for the unknown-station row.
+
+  - name: dim_date
+    description: One row per day from the first trip start to the last trip end.
+    columns:
+      - name: date_key
+        description: yyyymmdd as an integer.
+      - name: full_date
+        description: The calendar date.
+      - name: year
+        description: Calendar year.
+      - name: month
+        description: Month number, 1–12.
+      - name: month_name
+        description: Month name, e.g. September.
+      - name: day_of_month
+        description: Day of the month, 1–31.
+      - name: day_of_week
+        description: ISO day of week, 1 = Monday … 7 = Sunday.
+      - name: day_name
+        description: Day name, e.g. Monday.
+      - name: is_weekend
+        description: True on Saturday and Sunday.
+      - name: is_holiday
+        description: True when the date is in the holidays seed.
+      - name: holiday_name
+        description: Holiday name, NULL on normal days.
+
+  - name: dim_weather
+    description: One row per hour of weather, plus an unknown-weather row (key -1).
+    columns:
+      - name: weather_key
+        description: yyyymmddhh as an integer, or -1.
+      - name: date_key
+        description: Date of the hour, yyyymmdd.
+      - name: hour
+        description: Hour of day, 0–23.
+      - name: observed_at
+        description: Start of the hour, Chicago local time.
+      - name: temp_c
+        description: Air temperature, °C.
+      - name: precipitation_mm
+        description: Precipitation in that hour, mm.
+      - name: wind_kmh
+        description: Wind speed, km/h.
+      - name: weather_code
+        description: WMO weather code.
+      - name: weather_category
+        description: Simplified category derived from weather_code.
+  - name: agg_station_daily
+    description: One row per station per day with trips started, trips ended, and net flow.
+    columns:
+      - name: station_key
+        description: The station (including the unknown station).
+      - name: date_key
+        description: The day, yyyymmdd.
+      - name: trips_started
+        description: Valid trips that started here on this day.
+      - name: trips_ended
+        description: Valid trips that ended here on this day.
+      - name: net_flow
+        description: trips_ended - trips_started. Positive = the station gained bikes.
+

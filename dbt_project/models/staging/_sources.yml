@@ -1,0 +1,22 @@
+version: 2
+
+sources:
+  - name: silver
+    description: >
+      Cleaned Parquet written by cascade.clean, partitioned by year_month.
+      dbt-duckdb reads the files directly; {name} becomes the table name.
+    meta:
+      external_location: >-
+        read_parquet('{{ env_var('CASCADE_DATA_ROOT', 'data') }}/silver/{name}/*/*.parquet',
+                     hive_partitioning = true)
+    # TODO(week10): add a freshness check on silver here: warn after 1 day, error
+    # after 7 days, based on the cleaned_at column. Then delete this TODO line.
+    # Test it with: uv run python -m cascade.transform --freshness
+    tables:
+      - name: trips
+        description: One row per trip (deduplicated on ride_id), with data-quality flags.
+        columns:
+          - name: cleaned_at
+            description: When cascade.clean wrote this batch (UTC). Used for freshness.
+      - name: weather
+        description: One row per hour of Chicago weather from Open-Meteo.

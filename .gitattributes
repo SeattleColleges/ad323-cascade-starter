@@ -1,0 +1,9 @@
+# Keep data files byte-for-byte as published. Divvy's CSVs use Windows (CRLF)
+# line endings; without this, Git on Windows with core.autocrlf could rewrite
+# them on checkout, which changes their hashes and the reference answers.
+data/** -text
+
+# Shell-style files must keep Unix line endings, even when edited on Windows.
+*.sh text eol=lf
+*.yml text eol=lf
+*.toml text eol=lf

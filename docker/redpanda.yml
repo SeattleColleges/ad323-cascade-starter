@@ -1,0 +1,39 @@
+# Week 8: a single Redpanda node (Kafka-compatible) for the streaming lab.
+# Provided infrastructure.
+#
+# Start:   docker compose -f docker/redpanda.yml up -d
+# Check:   docker exec cascade-redpanda rpk cluster health
+# Topics:  docker exec cascade-redpanda rpk topic list
+# Stop:    docker compose -f docker/redpanda.yml down        (add -v to also delete all messages)
+#
+# Your Python code (producer and consumer) runs on your laptop with uv and
+# connects to localhost:19092.
+
+# Its own project name, so the Spark and Redpanda labs never share a network
+# (both files live in docker/, which Compose would otherwise use as the name).
+name: cascade-streaming-lab
+
+services:
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:v26.2.6@sha256:8b1076e0d61bfceb66594dc01536427ce0b529f8ead35fdab9763ab6085891ce
+    container_name: cascade-redpanda
+    command:
+      - redpanda
+      - start
+      - --mode=dev-container          # relaxed settings for a laptop (not for production)
+      - --smp=1                       # one CPU core
+      - --memory=512M                 # Redpanda's own memory budget...
+      - --reserve-memory=0M
+      - --overprovisioned
+      - --node-id=0
+      # Two listeners: one for other containers, one for programs on your laptop.
+      - --kafka-addr=internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr=internal://redpanda:9092,external://localhost:19092
+    ports:
+      - "127.0.0.1:19092:19092"       # localhost only
+    mem_limit: 1g                     # ...and a hard cap for the whole container
+    volumes:
+      - redpanda-data:/var/lib/redpanda/data
+
+volumes:
+  redpanda-data:

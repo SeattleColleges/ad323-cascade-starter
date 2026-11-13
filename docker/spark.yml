@@ -1,0 +1,34 @@
+# Week 7: PySpark in Jupyter (provided infrastructure).
+#
+# Start:   docker compose -f docker/spark.yml up
+# Open:    http://127.0.0.1:8888   (no password; only reachable from this computer)
+# Stop:    Ctrl+C, then  docker compose -f docker/spark.yml down
+#
+# Folders inside the container:
+#   /home/jovyan/work            <- spark/ (the notebook; your edits are saved)
+#   /home/jovyan/data/silver     <- full-year silver Parquet (read-only)
+#   /home/jovyan/data/engine_out <- where Spark writes its output
+#
+# To use a different data root:  CASCADE_DATA_ROOT=../data/my-root docker compose -f docker/spark.yml up
+# (the path is relative to this docker/ folder)
+
+# Its own project name, so the Spark and Redpanda labs never share a network
+# (both files live in docker/, which Compose would otherwise use as the name).
+name: cascade-spark-lab
+
+services:
+  spark:
+    # Official Jupyter Docker Stacks image, pinned to an exact build (Spark 4.2.0).
+    image: quay.io/jupyter/pyspark-notebook:2026-10-26@sha256:fcbfbcb1a8efeb94c64027584344053e1908529832dfb10644d7763201fac26e
+    container_name: cascade-spark
+    ports:
+      - "127.0.0.1:8888:8888"      # localhost only
+      - "127.0.0.1:4040:4040"      # Spark UI while a job runs
+    volumes:
+      - ../spark:/home/jovyan/work
+      - ${CASCADE_DATA_ROOT:-../data/runs/full-year}/silver:/home/jovyan/data/silver:ro
+      - ${CASCADE_DATA_ROOT:-../data/runs/full-year}/engine_out:/home/jovyan/data/engine_out
+    # Hard memory cap so the lab fits on an 8 GB laptop. Spark's own memory
+    # (spark.driver.memory in the notebook) must stay below this.
+    mem_limit: 3g
+    command: start-notebook.py --IdentityProvider.token='' --ServerApp.password=''

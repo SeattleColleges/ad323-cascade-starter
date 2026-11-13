@@ -1,0 +1,16 @@
+# Prefect settings for this project (provided infrastructure).
+# Prefect reads this file when commands run from the repo root.
+
+[server]
+# Don't send anonymous usage statistics from student machines.
+analytics_enabled = false
+
+[logging]
+# Show messages from our own cascade.* modules in the Prefect UI, not just
+# messages from Prefect itself.
+extra_loggers = "cascade"
+
+[logging.to_api]
+# Our modules also run outside Prefect (plain CLI commands, tests). There,
+# just log to the terminal instead of warning that no flow run exists.
+when_missing_flow = "ignore"

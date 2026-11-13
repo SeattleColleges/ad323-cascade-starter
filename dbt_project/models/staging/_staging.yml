@@ -1,0 +1,76 @@
+version: 2
+
+# Week 5 TODO: add data_tests (unique, not_null, relationships, accepted_values, ...) to the
+# columns below. The skeleton lists every model and column; the tests are yours.
+
+models:
+  - name: stg_trips
+    description: One row per silver trip, all columns, no filtering. The marts decide which trips to keep.
+    columns:
+      - name: ride_id
+        description: Divvy's trip ID, kept as text (the format changed from hex to digits in 2026-10).
+      - name: rideable_type
+        description: classic_bike or electric_bike.
+      - name: member_casual
+        description: member (annual pass) or casual (single ride or day pass).
+      - name: started_at
+        description: Trip start, Chicago local time.
+      - name: ended_at
+        description: Trip end, Chicago local time.
+      - name: duration_min
+        description: ended_at minus started_at, in minutes.
+      - name: start_station_id
+        description: Station ID where the trip started; NULL for dockless e-bike starts.
+      - name: start_station_name
+        description: Station name as written in the trip file.
+      - name: end_station_id
+        description: Station ID where the trip ended; NULL for dockless e-bike ends.
+      - name: end_station_name
+        description: Station name as written in the trip file.
+      - name: start_lat
+        description: Start latitude.
+      - name: start_lng
+        description: Start longitude.
+      - name: end_lat
+        description: End latitude.
+      - name: end_lng
+        description: End longitude.
+      - name: flag_bad_timestamp
+        description: Start or end time missing or unreadable.
+      - name: flag_too_short
+        description: Under 1 minute, including negative durations.
+      - name: flag_too_long
+        description: Over 24 hours.
+      - name: flag_missing_station
+        description: Start or end station ID missing. Does NOT make the trip invalid.
+      - name: flag_bad_coords
+        description: A coordinate is missing or outside the Chicago service area box.
+      - name: is_valid
+        description: True when no invalidating flag is set (every flag except flag_missing_station).
+      - name: year_month
+        description: The batch (source file month), from the silver partition folder.
+
+  - name: stg_weather
+    description: One row per hour of Chicago weather from Open-Meteo.
+    columns:
+      - name: observed_at
+        description: Start of the hour, Chicago local time.
+      - name: temp_c
+        description: Air temperature at 2 m, °C.
+      - name: precipitation_mm
+        description: Rain plus snow in that hour, mm.
+      - name: wind_kmh
+        description: Wind speed at 10 m, km/h.
+      - name: weather_code
+        description: WMO weather interpretation code.
+      - name: year_month
+        description: The batch the weather belongs to.
+
+seeds:
+  - name: holidays
+    description: US federal holidays 2025–2026, typed in by hand. Used by dim_date.
+    columns:
+      - name: holiday_date
+        description: The calendar date of the holiday (not the observed weekday).
+      - name: holiday_name
+        description: Holiday name.

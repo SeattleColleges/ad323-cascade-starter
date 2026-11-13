@@ -1,0 +1,41 @@
+# dbt project for the Cascade Mobility gold layer (Week 5).
+# Run from the repo root:
+#   uv run python -m cascade.transform            (build + export gold Parquet)
+# or call dbt directly:
+#   uv run dbt build --project-dir dbt_project --profiles-dir dbt_project
+
+name: cascade
+version: "1.0.0"
+profile: cascade
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+target-path: "target"
+clean-targets: ["target", "logs"]
+
+flags:
+  send_anonymous_usage_stats: false   # no telemetry from student machines
+
+models:
+  cascade:
+    staging:
+      +schema: staging        # views over silver Parquet, one per source table
+      +materialized: view
+    marts:
+      +schema: gold           # the star schema the dashboard reads
+      +materialized: table
+    stream:
+      +schema: staging        # Week 8; fct_station_availability overrides this to gold
+      +materialized: table
+    restricted:
+      +schema: restricted     # Week 9: raw PII, never exported
+
+seeds:
+  cascade:
+    +schema: staging
+    holidays:
+      +column_types:
+        holiday_date: date
+        holiday_name: varchar
