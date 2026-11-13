@@ -21,10 +21,11 @@ services:
     # Official Jupyter Docker Stacks image, pinned to an exact build (Spark 4.2.0).
     image: quay.io/jupyter/pyspark-notebook:2026-10-26@sha256:fcbfbcb1a8efeb94c64027584344053e1908529832dfb10644d7763201fac26e
     container_name: cascade-spark
-    # On Linux (WSL2, Codespaces) Docker creates a missing engine_out folder as
-    # root, and Spark (user jovyan) could not write to it. Starting as root lets
-    # the image's start script hand that folder to jovyan; Jupyter itself still
-    # runs as jovyan, never as root.
+    # File ownership on Linux (WSL2, Codespaces): Docker creates a missing
+    # engine_out folder as root, and the image's user (jovyan, id 1000) may not
+    # be you. So the container starts as root just long enough for
+    # spark-hooks/match-host-user.sh to give jovyan YOUR user id and hand it
+    # engine_out; Jupyter itself never runs as root.
     user: root
     environment:
       CHOWN_EXTRA: /home/jovyan/data/engine_out
@@ -34,6 +35,7 @@ services:
       - "127.0.0.1:4040:4040"      # Spark UI while a job runs
     volumes:
       - ../spark:/home/jovyan/work
+      - ./spark-hooks:/usr/local/bin/start-notebook.d:ro
       - ${CASCADE_DATA_ROOT:-../data/runs/full-year}/silver:/home/jovyan/data/silver:ro
       - ${CASCADE_DATA_ROOT:-../data/runs/full-year}/engine_out:/home/jovyan/data/engine_out
     # Hard memory cap so the lab fits on an 8 GB laptop. Spark's own memory

@@ -27,6 +27,7 @@ git clone https://github.com/<you>/<your-repo>.git
 cd <your-repo>
 uv sync                  # installs Python 3.12 and every pinned package
 uv run pytest            # Week 1 passes; later weeks show as "skipped"
+uv run python -m cascade.doctor     # checks this computer; paste the output into docs/WEEK_01.md
 ```
 
 Everything graded runs on the frozen sample in `data/sample/` (50,000 trips
@@ -122,7 +123,9 @@ docker pull quay.io/jupyter/pyspark-notebook:2026-10-26
 docker pull docker.redpanda.com/redpandadata/redpanda:v26.2.6
 ```
 
-4. Check that Docker works: `docker run --rm hello-world`.
+4. Check everything at once: `uv run python -m cascade.doctor --docker`.
+   Paste the output into `docs/WEEK_06.md`. Any FAIL line: fix it this week,
+   or plan to do Weeks 7-8 in [Codespaces](#codespaces-fallback).
 
 Both labs fit on an 8 GB laptop: the Spark container is capped at 3 GB and
 Redpanda at 1 GB. Close other big apps during the labs.

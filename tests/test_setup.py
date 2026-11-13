@@ -32,3 +32,10 @@ def test_sample_weather_covers_every_hour(batch_id, hours):
     path = SAMPLE_DIR / batch_id / config.WEATHER_FILENAME
     count = duckdb.sql(f"SELECT len(hourly.time) FROM read_json('{path}')").fetchone()[0]
     assert count == hours
+
+
+def test_machine_check_runs():
+    from cascade import doctor
+    results = {check: status for status, check, _ in doctor.checks(need_docker=False)}
+    assert results["Python"] == "OK"
+    assert results["Sample data"] == "OK"
